@@ -1,0 +1,14 @@
+{
+  "name": "georender-pack-geojson",
+  "version": "1.0.0",
+  "bin": {
+    "georender-pack-geojson": "cmd.js"
+  },
+  "dependencies": {
+    "georender-pack": "^4.0.0",
+    "JSONStream": "^1.3.5",
+    "length-prefixed-stream": "^2.0.0",
+    "minimist": "^1.2.5",
+    "through2": "^4.0.2"
+  }
+}
