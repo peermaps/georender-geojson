@@ -7,9 +7,10 @@ module.exports = function (buffers) {
   var prevId = null, prevIndex = 0
   var features = []
   var ring = []
-  var coordinates = [ring]
+  var coordinates = [[ring]]
   var ringStart = 0
   var edgeCounts = getEdgeCounts(decoded.area.cells)
+  var isMulti = false
   for (var i = 0; i < decoded.area.ids.length; i++) {
     var id = decoded.area.ids[i]
     if (i > 0 && id !== prevId) {
@@ -19,22 +20,32 @@ module.exports = function (buffers) {
         type: 'Feature',
         properties: getFeatureType(decoded.area.types[i-1]),
         geometry: {
-          type: 'Polygon',
-          coordinates
+          type: isMulti ? 'MultiPolygon' : 'Polygon',
+          coordinates: isMulti ? coordinates : coordinates[0],
         }
       })
+      isMulti = false
       ring = []
-      coordinates = [ring]
+      coordinates = [[ring]]
       ring.push([decoded.area.positions[i*2+0], decoded.area.positions[i*2+1]])
       ringStart = i
       prevIndex = i
     } else if (i > 0 && decoded.area.ids[i+1] === id && edgeCounts[edgeKey(i,i+1)] !== 1) {
-      ring.push([decoded.area.positions[i*2+0], decoded.area.positions[i*2+1]])
-      ring.push([ring[0][0],ring[0][1]])
+      var p = [decoded.area.positions[i*2+0], decoded.area.positions[i*2+1]]
+      ring.push(p, [ring[0][0],ring[0][1]])
       ring = []
-      coordinates.push(ring)
+      coordinates[coordinates.length-1].push(ring)
     } else {
-      ring.push([decoded.area.positions[i*2+0], decoded.area.positions[i*2+1]])
+      var p = [decoded.area.positions[i*2+0], decoded.area.positions[i*2+1]]
+      var cl = coordinates.length
+      var c0l = coordinates[cl-1].length
+      if (c0l > 1 && ring.length === 0 && !pointInPolygon(p, coordinates[cl-1][0])) {
+        coordinates[cl-1].splice(-1)
+        ring = []
+        coordinates.push([ring])
+        isMulti = true
+      }
+      ring.push(p)
     }
     prevId = id
   }
@@ -43,8 +54,8 @@ module.exports = function (buffers) {
     type: 'Feature',
     properties: getFeatureType(decoded.area.types[i-1]),
     geometry: {
-      type: 'Polygon',
-      coordinates
+      type: isMulti ? 'MultiPolygon' : 'Polygon',
+      coordinates: isMulti ? coordinates : coordinates[0],
     }
   })
   return { type: 'FeatureCollection', features }

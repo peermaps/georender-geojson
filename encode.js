@@ -113,14 +113,14 @@ function encodeFeature(feature, opts) {
         var wayId = id++
         members.push({
           type: 'way',
-          role: i === 0 ? 'inner' : 'outer',
+          role: i === 0 ? 'outer' : 'inner',
           id: wayId,
         })
         var refs = []
         var firstId = id
         for (var j = 0; j < cs.length; j++) {
           if (j === cs.length-1 && approxEq(cs[0], cs[j])) continue
-          refs.push = id
+          refs.push(id)
           deps[id] = { lon: cs[j][0], lat: cs[j][1] }
           id++
         }

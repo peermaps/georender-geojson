@@ -4,25 +4,25 @@ const encode = require('../encode.js')
 
 test('decode encode simple', function (t) {
   var decoded = decode(encode({
-    type: "FeatureCollection",
+    type: 'FeatureCollection',
     features: [
       {
-        type: "Feature",
+        type: 'Feature',
         geometry: {
-          type: "Polygon",
+          type: 'Polygon',
           coordinates: [[[1,2],[3,4],[5,0],[1,2]]],
         },
       }
     ],
   }))
   t.deepEqual(decoded, {
-    type: "FeatureCollection",
+    type: 'FeatureCollection',
     features: [
       {
-        type: "Feature",
+        type: 'Feature',
         properties: { place: 'other' },
         geometry: {
-          type: "Polygon",
+          type: 'Polygon',
           coordinates: [[[1,2],[3,4],[5,0],[1,2]]],
         },
       }
@@ -31,14 +31,14 @@ test('decode encode simple', function (t) {
   t.end()
 })
 
-test('decode encode holes', function (t) {
+test('decode encode hole', function (t) {
   var decoded = decode(encode({
-    type: "FeatureCollection",
+    type: 'FeatureCollection',
     features: [
       {
-        type: "Feature",
+        type: 'Feature',
         geometry: {
-          type: "Polygon",
+          type: 'Polygon',
           coordinates: [
             [[10,20],[30,40],[50,0],[10,20]],
             [[15,21],[25,22],[34,19],[15,21]],
@@ -48,16 +48,59 @@ test('decode encode holes', function (t) {
     ],
   }))
   t.deepEqual(decoded, {
-    type: "FeatureCollection",
+    type: 'FeatureCollection',
     features: [
       {
-        type: "Feature",
+        type: 'Feature',
         properties: { place: 'other' },
         geometry: {
-          type: "Polygon",
+          type: 'Polygon',
           coordinates: [
             [[10,20],[30,40],[50,0],[10,20]],
             [[15,21],[25,22],[34,19],[15,21]],
+          ],
+        },
+      }
+    ],
+  })
+  t.end()
+})
+
+test('decode encode multipolygon', function (t) {
+  var decoded = decode(encode({
+    type: 'FeatureCollection',
+    features: [
+      {
+        type: 'Feature',
+        geometry: {
+          type: 'MultiPolygon',
+          coordinates: [
+            [
+              [[10,20],[30,40],[50,0],[10,20]]
+            ],
+            [
+              [[0,50],[40,55],[20,35],[0,50]]
+            ],
+          ],
+        },
+      }
+    ],
+  }))
+  t.deepEqual(decoded, {
+    type: 'FeatureCollection',
+    features: [
+      {
+        type: 'Feature',
+        properties: { place: 'other' },
+        geometry: {
+          type: 'MultiPolygon',
+          coordinates: [
+            [
+              [[10,20],[30,40],[50,0],[10,20]]
+            ],
+            [
+              [[0,50],[40,55],[20,35],[0,50]]
+            ],
           ],
         },
       }
