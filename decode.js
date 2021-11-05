@@ -1,5 +1,6 @@
 const features = require('georender-pack/features.json')
 const decode = require('georender-pack/decode')
+const pointInPolygon = require('point-in-polygon')
 
 module.exports = function (buffers) {
   var decoded = decode(Array.isArray(buffers) ? buffers : [buffers])
@@ -11,8 +12,9 @@ module.exports = function (buffers) {
   var edgeCounts = getEdgeCounts(decoded.area.cells)
   for (var i = 0; i < decoded.area.ids.length; i++) {
     var id = decoded.area.ids[i]
-    if ((i > 0 && id !== prevId) || i === decoded.area.ids.length-1) {
+    if (i > 0 && id !== prevId) {
       // todo: add labels to properties
+      ring.push([ring[0][0],ring[0][1]])
       features.push({
         type: 'Feature',
         properties: getFeatureType(decoded.area.types[i-1]),
@@ -25,14 +27,23 @@ module.exports = function (buffers) {
       coordinates = [ring]
       ringStart = i
       prevIndex = i
-    }
-    if (i > 0 && decoded.area.ids[i+1] === id && edgeCounts[edgeKey(i,i+1)] !== 1) {
+    } else if (i > 0 && decoded.area.ids[i+1] === id && edgeCounts[edgeKey(i,i+1)] !== 1) {
+      ring.push([ring[0][0],ring[0][1]])
       ring = []
       coordinates.push(ring)
     }
     ring.push([decoded.area.positions[i*2+0], decoded.area.positions[i*2+1]])
     prevId = id
   }
+  ring.push([ring[0][0],ring[0][1]])
+  features.push({
+    type: 'Feature',
+    properties: getFeatureType(decoded.area.types[i-1]),
+    geometry: {
+      type: 'Polygon',
+      coordinates
+    }
+  })
   return { type: 'FeatureCollection', features }
 }
 

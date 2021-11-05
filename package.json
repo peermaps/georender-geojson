@@ -6,10 +6,14 @@
     "georender-pack-geojson": "cmd.js"
   },
   "dependencies": {
-    "georender-pack": "^4.0.0",
     "JSONStream": "^1.3.5",
+    "georender-pack": "^4.0.0",
     "length-prefixed-stream": "^2.0.0",
     "minimist": "^1.2.5",
+    "point-in-polygon": "^1.1.0",
     "through2": "^4.0.2"
+  },
+  "devDependencies": {
+    "tape": "^5.3.1"
   }
 }
