@@ -1,6 +1,7 @@
 {
   "name": "georender-pack-geojson",
   "version": "1.0.0",
+  "description": "convert between geojson and georender",
   "bin": {
     "georender-pack-geojson": "cmd.js"
   },

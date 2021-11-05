@@ -23,7 +23,7 @@ function encodeFeature(feature, opts) {
   if (!feature || feature.type !== 'Feature') return []
   var g = feature.geometry
   if (!g || !Array.isArray(g.coordinates)) return []
-  var props = propertyMap(feature.properties || {})
+  var props = propertyMap(feature.properties || {}, feature)
   if (g.type === 'Point') {
     return [ encode({
       type: 'node',
