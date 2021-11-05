@@ -25,14 +25,17 @@ module.exports = function (buffers) {
       })
       ring = []
       coordinates = [ring]
+      ring.push([decoded.area.positions[i*2+0], decoded.area.positions[i*2+1]])
       ringStart = i
       prevIndex = i
     } else if (i > 0 && decoded.area.ids[i+1] === id && edgeCounts[edgeKey(i,i+1)] !== 1) {
+      ring.push([decoded.area.positions[i*2+0], decoded.area.positions[i*2+1]])
       ring.push([ring[0][0],ring[0][1]])
       ring = []
       coordinates.push(ring)
+    } else {
+      ring.push([decoded.area.positions[i*2+0], decoded.area.positions[i*2+1]])
     }
-    ring.push([decoded.area.positions[i*2+0], decoded.area.positions[i*2+1]])
     prevId = id
   }
   ring.push([ring[0][0],ring[0][1]])
