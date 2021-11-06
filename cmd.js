@@ -29,7 +29,7 @@ if (cmd === 'encode') {
     outfmt = through((buf,enc,next) => {
       next(null, buf.toString(argv.f) + '\n')
     })
-  } else {
+  } else if (true || argv.f === 'lp') {
     outfmt = lp.encode()
   }
   input
@@ -53,7 +53,7 @@ if (cmd === 'encode') {
       }),
       function (err) { console.error(err) }
     )
-  } else {
+  } else if (true || argv.f === 'lp') {
     infmt = lp.decode()
   }
   input
