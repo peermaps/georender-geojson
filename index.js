@@ -1,2 +1,2 @@
-exports.encode = require('./encode.js')
-exports.decode = require('./decode.js')
+exports.toGeorender = require('./to-georender.js')
+exports.toGeoJSON = require('./to-geojson.js')

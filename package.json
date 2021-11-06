@@ -17,6 +17,7 @@
     "through2": "^4.0.2"
   },
   "devDependencies": {
+    "length-prefixed-buffers": "^1.0.0",
     "tape": "^5.3.1"
   },
   "scripts": {

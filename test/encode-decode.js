@@ -1,9 +1,9 @@
 const test = require('tape')
-const decode = require('../decode.js')
-const encode = require('../encode.js')
+const toGeorender = require('../to-georender.js')
+const toGeoJSON = require('../to-geojson.js')
 
 test('decode encode simple', function (t) {
-  var decoded = decode(encode({
+  var decoded = toGeoJSON(toGeorender({
     type: 'FeatureCollection',
     features: [
       {
@@ -32,7 +32,7 @@ test('decode encode simple', function (t) {
 })
 
 test('decode encode hole', function (t) {
-  var decoded = decode(encode({
+  var decoded = toGeoJSON(toGeorender({
     type: 'FeatureCollection',
     features: [
       {
@@ -67,7 +67,7 @@ test('decode encode hole', function (t) {
 })
 
 test('decode encode multipolygon', function (t) {
-  var decoded = decode(encode({
+  var decoded = toGeoJSON(toGeorender({
     type: 'FeatureCollection',
     features: [
       {
