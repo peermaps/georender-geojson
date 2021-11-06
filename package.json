@@ -22,5 +22,6 @@
   },
   "scripts": {
     "test": "tape test/*.js"
-  }
+  },
+  "license": "bsd"
 }
