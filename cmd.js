@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-var encode = require('./encode.js')
-var decode = require('./decode.js')
+var encode = require('./to-georender.js')
+var decode = require('./to-geojson.js')
 var JSONStream = require('JSONStream')
 var minimist = require('minimist')
 var fs = require('fs')
