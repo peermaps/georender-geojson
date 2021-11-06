@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "convert between geojson and georender",
   "bin": {
-    "georender-pack-geojson": "cmd.js"
+    "georender-geojson": "cmd.js",
+    "georender-to-geojson": "cmd.js",
+    "geojson-to-georender": "cmd.js"
   },
   "dependencies": {
     "JSONStream": "^1.3.5",
@@ -11,6 +13,7 @@
     "length-prefixed-stream": "^2.0.0",
     "minimist": "^1.2.5",
     "point-in-polygon": "^1.1.0",
+    "split2": "^4.1.0",
     "through2": "^4.0.2"
   },
   "devDependencies": {

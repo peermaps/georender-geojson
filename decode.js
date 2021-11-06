@@ -4,14 +4,14 @@ const pointInPolygon = require('point-in-polygon')
 
 module.exports = function (buffers) {
   var decoded = decode(Array.isArray(buffers) ? buffers : [buffers])
-  var prevId = null, prevIndex = 0
+  //console.dir(decoded, { depth: Infinity })
+  var prevId = null
   var features = []
   var ring = []
   var coordinates = [[ring]]
-  var ringStart = 0
   var edgeCounts = getEdgeCounts(decoded.area.cells)
   var isMulti = false
-  for (var i = 0; i < decoded.area.ids.length; i++) {
+  for (var i = 0; i < decoded.area.types.length; i++) {
     var id = decoded.area.ids[i]
     if (i > 0 && id !== prevId) {
       // todo: add labels to properties
@@ -28,8 +28,6 @@ module.exports = function (buffers) {
       ring = []
       coordinates = [[ring]]
       ring.push([decoded.area.positions[i*2+0], decoded.area.positions[i*2+1]])
-      ringStart = i
-      prevIndex = i
     } else if (i > 0 && decoded.area.ids[i+1] === id && edgeCounts[edgeKey(i,i+1)] !== 1) {
       var p = [decoded.area.positions[i*2+0], decoded.area.positions[i*2+1]]
       ring.push(p, [ring[0][0],ring[0][1]])
@@ -49,19 +47,24 @@ module.exports = function (buffers) {
     }
     prevId = id
   }
-  ring.push([ring[0][0],ring[0][1]])
-  features.push({
-    type: 'Feature',
-    properties: getFeatureType(decoded.area.types[i-1]),
-    geometry: {
-      type: isMulti ? 'MultiPolygon' : 'Polygon',
-      coordinates: isMulti ? coordinates : coordinates[0],
-    }
-  })
+  if (ring.length > 0) {
+    ring.push([ring[0][0],ring[0][1]])
+  }
+  if (coordinates[0].length > 0) {
+    features.push({
+      type: 'Feature',
+      properties: getFeatureType(decoded.area.types[i-1]),
+      geometry: {
+        type: isMulti ? 'MultiPolygon' : 'Polygon',
+        coordinates: isMulti ? coordinates : coordinates[0],
+      }
+    })
+  }
   return { type: 'FeatureCollection', features }
 }
 
 function getFeatureType(type) {
+  if (type === undefined) return {}
   var parts = features[type].split('.')
   var tags = {}
   tags[parts[0]] = parts[1]
