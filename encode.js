@@ -15,10 +15,10 @@ function encodeDynamic(obj, opts) {
 
 function encodeCollection(fc, opts) {
   if (!fc || fc.type !== 'FeatureCollection') return []
-  return (fc.features || []).flatMap(feature => encodeFeature(feature, opts))
+  return (fc.features || []).flatMap((feature,i) => encodeFeature(feature, opts, i))
 }
 
-function encodeFeature(feature, opts) {
+function encodeFeature(feature, opts, i) {
   var propertyMap = opts && opts.propertyMap || identity
   if (!feature || feature.type !== 'Feature') return []
   var g = feature.geometry
@@ -28,7 +28,7 @@ function encodeFeature(feature, opts) {
     return [ encode({
       type: 'node',
       tags: props,
-      id: props.id || 0,
+      id: props.id || i,
       lon: g.coordinates[0],
       lat: g.coordinates[1],
     }) ]
@@ -36,7 +36,7 @@ function encodeFeature(feature, opts) {
     return g.coordinates.map(p => encode({
       type: 'node',
       tags: props,
-      id: props.id || 0,
+      id: props.id || i,
       lon: p[0],
       lat: p[1],
     }))
@@ -44,28 +44,28 @@ function encodeFeature(feature, opts) {
     var cs = g.coordinates
     var deps = new Array(cs.length)
     var refs = new Array(cs.length)
-    for (var i = 0; i < cs.length; i++) {
-      deps[i] = { lon: cs[i][0], lat: cs[i][1] }
-      refs[i] = i
+    for (var j = 0; j < cs.length; j++) {
+      deps[j] = { lon: cs[j][0], lat: cs[j][1] }
+      refs[j] = j
     }
     return [ encode({
       type: 'way',
       tags: props,
-      id: props.id || 0,
+      id: props.id || i,
       refs,
     }, deps) ]
   } else if (g.type === 'MultiLineString') {
     return g.coordinates.map(cs => {
       var deps = new Array(cs.length)
       var refs = new Array(cs.length)
-      for (var i = 0; i < cs.length; i++) {
-        deps[i] = { lon: cs[i][0], lat: cs[i][1] }
-        refs[i] = i
+      for (var j = 0; j < cs.length; j++) {
+        deps[j] = { lon: cs[j][0], lat: cs[j][1] }
+        refs[j] = j
       }
       return encode({
         type: 'way',
         tags: props,
-        id: props.id || 0,
+        id: props.id || i,
         refs,
       }, deps)
     })
@@ -74,21 +74,21 @@ function encodeFeature(feature, opts) {
     var deps = {}
     var members = []
     var id = 1
-    for (var i = 0; i < rings.length; i++) {
-      var cs = rings[i]
+    for (var j = 0; j < rings.length; j++) {
+      var cs = rings[j]
       if (cs.length === 0) continue
       var wayId = id++
       members.push({
         type: 'way',
-        role: i === 0 ? 'outer' : 'inner',
+        role: j === 0 ? 'outer' : 'inner',
         id: wayId,
       })
       var refs = []
       var firstId = id
-      for (var j = 0; j < cs.length; j++) {
-        if (j === cs.length-1 && approxEq(cs[0], cs[j])) continue
+      for (var k = 0; k < cs.length; k++) {
+        if (k === cs.length-1 && approxEq(cs[0], cs[k])) continue
         refs.push(id)
-        deps[id] = { lon: cs[j][0], lat: cs[j][1] }
+        deps[id] = { lon: cs[k][0], lat: cs[k][1] }
         id++
       }
       refs.push(firstId)
@@ -97,7 +97,7 @@ function encodeFeature(feature, opts) {
     return [ encode({
       type: 'relation',
       tags: Object.assign({}, props, { type: 'multipolygon' }),
-      id: props.id || 0,
+      id: props.id || i,
       members,
     }, deps) ]
   } else if (g.type === 'MultiPolygon') {
@@ -107,13 +107,13 @@ function encodeFeature(feature, opts) {
     var id = 1
     for (var k = 0; k < mrings.length; k++) {
       var rings = mrings[k]
-      for (var i = 0; i < rings.length; i++) {
-        var cs = rings[i]
+      for (var n = 0; n < rings.length; n++) {
+        var cs = rings[n]
         if (cs.length === 0) continue
         var wayId = id++
         members.push({
           type: 'way',
-          role: i === 0 ? 'outer' : 'inner',
+          role: n === 0 ? 'outer' : 'inner',
           id: wayId,
         })
         var refs = []
@@ -131,7 +131,7 @@ function encodeFeature(feature, opts) {
     return [ encode({
       type: 'relation',
       tags: Object.assign({}, props, { type: 'multipolygon' }),
-      id: props.id || 0,
+      id: props.id || i,
       members,
     }, deps) ]
   } else {

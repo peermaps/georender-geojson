@@ -4,21 +4,73 @@ const pointInPolygon = require('point-in-polygon')
 
 module.exports = function (buffers) {
   var decoded = decode(Array.isArray(buffers) ? buffers : [buffers])
-  //console.dir(decoded, { depth: Infinity })
-  var prevId = null
   var features = []
+  decodePoint(features, decoded.point)
+  decodeLine(features, decoded.line)
+  decodeArea(features, decoded.area)
+  return { type: 'FeatureCollection', features }
+}
+
+function decodePoint(features, point) {
+  for (var i = 0; i < point.types.length; i++) {
+    var id = point.ids[i]
+    features.push({
+      type: 'Point',
+      properties: getFeatureType(point.types[i]),
+      geometry: {
+        type: 'Point',
+        coordinates: [point.positions[i*2+0], point.positions[i*2+1]],
+      },
+    })
+  }
+}
+
+function decodeLine(features, line) {
+  var prevId = null
+  var coordinates = []
+  for (var i = 0; i < line.types.length; i++) {
+    var id = line.ids[i]
+    if (i > 0 && id !== prevId) {
+      features.push({
+        type: 'Feature',
+        properties: getFeatureType(line.types[i-1]),
+        geometry: {
+          type: 'LineString',
+          coordinates: coordinates,
+        }
+      })
+      coordinates = []
+    } else {
+      coordinates.push([line.positions[i*2+0], line.positions[i*2+1]])
+    }
+    prevId = id
+  }
+  if (coordinates.length > 0) {
+    features.push({
+      type: 'Feature',
+      properties: getFeatureType(line.types[i-1]),
+      geometry: {
+        type: 'LineString',
+        coordinates: coordinates,
+      }
+    })
+  }
+}
+
+function decodeArea(features, area) {
+  var prevId = null
   var ring = []
   var coordinates = [[ring]]
-  var edgeCounts = getEdgeCounts(decoded.area.cells)
+  var edgeCounts = getEdgeCounts(area.cells)
   var isMulti = false
-  for (var i = 0; i < decoded.area.types.length; i++) {
-    var id = decoded.area.ids[i]
+  for (var i = 0; i < area.types.length; i++) {
+    var id = area.ids[i]
     if (i > 0 && id !== prevId) {
       // todo: add labels to properties
       ring.push([ring[0][0],ring[0][1]])
       features.push({
         type: 'Feature',
-        properties: getFeatureType(decoded.area.types[i-1]),
+        properties: getFeatureType(area.types[i-1]),
         geometry: {
           type: isMulti ? 'MultiPolygon' : 'Polygon',
           coordinates: isMulti ? coordinates : coordinates[0],
@@ -27,14 +79,14 @@ module.exports = function (buffers) {
       isMulti = false
       ring = []
       coordinates = [[ring]]
-      ring.push([decoded.area.positions[i*2+0], decoded.area.positions[i*2+1]])
-    } else if (i > 0 && decoded.area.ids[i+1] === id && edgeCounts[edgeKey(i,i+1)] !== 1) {
-      var p = [decoded.area.positions[i*2+0], decoded.area.positions[i*2+1]]
+      ring.push([area.positions[i*2+0], area.positions[i*2+1]])
+    } else if (i > 0 && area.ids[i+1] === id && edgeCounts[edgeKey(i,i+1)] !== 1) {
+      var p = [area.positions[i*2+0], area.positions[i*2+1]]
       ring.push(p, [ring[0][0],ring[0][1]])
       ring = []
       coordinates[coordinates.length-1].push(ring)
     } else {
-      var p = [decoded.area.positions[i*2+0], decoded.area.positions[i*2+1]]
+      var p = [area.positions[i*2+0], area.positions[i*2+1]]
       var cl = coordinates.length
       var c0l = coordinates[cl-1].length
       if (c0l > 1 && ring.length === 0 && !pointInPolygon(p, coordinates[cl-1][0])) {
@@ -50,17 +102,16 @@ module.exports = function (buffers) {
   if (ring.length > 0) {
     ring.push([ring[0][0],ring[0][1]])
   }
-  if (coordinates[0].length > 0) {
+  if (coordinates[0].length > 0 && coordinates[0][0].length > 0) {
     features.push({
       type: 'Feature',
-      properties: getFeatureType(decoded.area.types[i-1]),
+      properties: getFeatureType(area.types[i-1]),
       geometry: {
         type: isMulti ? 'MultiPolygon' : 'Polygon',
         coordinates: isMulti ? coordinates : coordinates[0],
       }
     })
   }
-  return { type: 'FeatureCollection', features }
 }
 
 function getFeatureType(type) {
