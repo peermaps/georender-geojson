@@ -10,7 +10,9 @@ var split = require('split2')
 var lp = require('length-prefixed-stream')
 var { pipeline } = require('stream')
 
-var argv = minimist(process.argv.slice(2))
+var argv = minimist(process.argv.slice(2), {
+  alias: { t: ['tag','tags'] }
+})
 var cmd = path.basename(process.argv[1])
 if (cmd === 'georender-to-geojson') {
   cmd = 'decode'
@@ -32,10 +34,21 @@ if (cmd === 'encode') {
   } else if (true || argv.f === 'lp') {
     outfmt = lp.encode()
   }
+  var encodeOpts = {}
+  if (argv.tags) {
+    var tags = {}
+    ;[].concat(argv.tags).forEach(function (tag) {
+      var [k,v] = tag.split('=')
+      tags[k] = v
+    })
+    encodeOpts.propertyMap = function (props) {
+      return Object.assign(props, tags)
+    }
+  }
   input
     .pipe(JSONStream.parse('features.*'))
     .pipe(through.obj(function (feature,enc,next) {
-      var bufs = encode(feature)
+      var bufs = encode(feature, encodeOpts)
       for (var i = 0; i < bufs.length; i++) {
         this.push(bufs[i])
       }
