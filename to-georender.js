@@ -9,7 +9,7 @@ function encodeDynamic(obj, opts) {
   else if (obj.type === 'FeatureCollection') {
     return encodeCollection(obj, opts)
   } else {
-    return encodeFeature(obj, opts)
+    return encodeFeature(obj, opts, 0)
   }
 }
 
