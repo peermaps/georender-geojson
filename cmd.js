@@ -11,7 +11,7 @@ var lp = require('length-prefixed-stream')
 var { pipeline } = require('stream')
 
 var argv = minimist(process.argv.slice(2), {
-  alias: { t: ['tag','tags'] }
+  alias: { t: ['tag','tags'], c: 'clip' }
 })
 var cmd = path.basename(process.argv[1])
 if (cmd === 'georender-to-geojson') {
@@ -45,9 +45,20 @@ if (cmd === 'encode') {
       return Object.assign(props, tags)
     }
   }
+  var m, cg = null, clip = null
+  if (m = /^icosphere(:\d+)?/.exec(argv.clip)) {
+    var xyzMeshToLonLat = require('./lib/xyz-mesh-to-lonlat.js')
+    var icosphere = require('icosphere')
+    clip = require('./lib/clip.js')
+    cg = xyzMeshToLonLat(icosphere(Number(m[1] || 0)))
+  }
   input
     .pipe(JSONStream.parse('features.*'))
     .pipe(through.obj(function (feature,enc,next) {
+      if (cg) {
+        feature = clip(cg, feature)
+        //show(feature)
+      }
       var bufs = encode(feature, encodeOpts)
       for (var i = 0; i < bufs.length; i++) {
         this.push(bufs[i])
@@ -84,4 +95,9 @@ if (cmd === 'encode') {
       '\n]}\n'
     ))
     .pipe(process.stdout)
+}
+
+function show(...args) {
+  var {inspect} = require('util')
+  console.error(args.map(x => inspect(x, { depth: null })).join(' '))
 }
