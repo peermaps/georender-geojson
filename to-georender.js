@@ -1,4 +1,5 @@
 const encode = require('georender-pack/encode')
+const setEdges = require('./lib/set-edges.js')
 
 module.exports = encodeDynamic
 module.exports.collection = encodeCollection
@@ -94,12 +95,14 @@ function encodeFeature(feature, opts, i) {
       refs.push(firstId)
       deps[wayId] = { type: 'way', id: wayId, refs }
     }
-    return [ encode({
+    var buf = encode({
       type: 'relation',
       tags: Object.assign({}, props, { type: 'multipolygon' }),
       id: props.id || i,
       members,
-    }, deps) ]
+    }, deps)
+    if (g.edges) setEdges(buf, g.edges)
+    return [buf]
   } else if (g.type === 'MultiPolygon') {
     var mrings = g.coordinates
     var deps = []
@@ -128,12 +131,14 @@ function encodeFeature(feature, opts, i) {
         deps[wayId] = { type: 'way', id: wayId, refs }
       }
     }
-    return [ encode({
+    var buf = encode({
       type: 'relation',
       tags: Object.assign({}, props, { type: 'multipolygon' }),
       id: props.id || i,
       members,
-    }, deps) ]
+    }, deps)
+    if (g.edges) setEdges(buf, g.edges)
+    return [buf]
   } else {
     return []
   }

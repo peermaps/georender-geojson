@@ -1,8 +1,19 @@
 #!/usr/bin/env node
+
+var minimist = require('minimist')
+var argv = minimist(process.argv.slice(2), {
+  alias: {
+    t: ['tag','tags'],
+    f: 'format',
+    o: 'outfile',
+    h: 'help'
+  }
+})
+if (argv.help) return usage()
+
 var encode = require('./to-georender.js')
 var decode = require('./to-geojson.js')
 var JSONStream = require('JSONStream')
-var minimist = require('minimist')
 var fs = require('fs')
 var path = require('path')
 var through = require('through2')
@@ -10,9 +21,6 @@ var split = require('split2')
 var lp = require('length-prefixed-stream')
 var { pipeline } = require('stream')
 
-var argv = minimist(process.argv.slice(2), {
-  alias: { t: ['tag','tags'], c: 'clip' }
-})
 var cmd = path.basename(process.argv[1])
 if (cmd === 'georender-to-geojson') {
   cmd = 'decode'
@@ -24,6 +32,9 @@ if (cmd === 'georender-to-geojson') {
 
 var infile = argv._[0] ?? '-'
 var input = infile === '-' ? process.stdin : fs.createReadStream(infile)
+var outstream = (argv.outfile ?? '-') === '-'
+  ? process.stdout
+  : fs.createWriteStream(argv.outfile)
 
 if (cmd === 'encode') {
   var outfmt = null
@@ -57,7 +68,6 @@ if (cmd === 'encode') {
     .pipe(through.obj(function (feature,enc,next) {
       if (cg) {
         feature = clip(cg, feature)
-        //show(feature)
       }
       var bufs = encode(feature, encodeOpts)
       for (var i = 0; i < bufs.length; i++) {
@@ -66,7 +76,7 @@ if (cmd === 'encode') {
       next()
     }))
     .pipe(outfmt)
-    .pipe(process.stdout)
+    .pipe(outstream)
 } else if (cmd === 'decode') {
   var infmt = null
   if (argv.f === 'base64' || argv.f === 'hex') {
@@ -97,7 +107,19 @@ if (cmd === 'encode') {
     .pipe(process.stdout)
 }
 
-function show(...args) {
-  var {inspect} = require('util')
-  console.error(args.map(x => inspect(x, { depth: null })).join(' '))
+function usage() {
+  console.log(`
+    usage: georender-to-geojson [FILE] {OPTIONS}
+    usage: geojson-to-georender [FILE] {OPTIONS}
+    usage: georender-geojson encode [FILE] {OPTIONS}
+    usage: georender-geojson decode [FILE] {OPTIONS}
+
+    Convert between georender and geojson formats:
+    geojson to georender (encode) or georender to geojson (decode)
+
+      -t --tag      For encoding, set a key=value as a tag.
+      -f --format   Input or output format: hex, base64, or lp (default).
+      -o --outfile  Write output to file or "-" for stdout (default).
+
+  `.trim().replace(/^ {4}/gm,'') + '\n')
 }

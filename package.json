@@ -17,7 +17,8 @@
     "pclip": "^1.4.0",
     "point-in-polygon": "^1.1.0",
     "split2": "^4.1.0",
-    "through2": "^4.0.2"
+    "through2": "^4.0.2",
+    "varint": "^6.0.0"
   },
   "devDependencies": {
     "length-prefixed-buffers": "^1.0.0",
