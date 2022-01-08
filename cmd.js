@@ -56,19 +56,9 @@ if (cmd === 'encode') {
       return Object.assign(props, tags)
     }
   }
-  var m, cg = null, clip = null
-  if (m = /^icosphere(:\d+)?/.exec(argv.clip)) {
-    var xyzMeshToLonLat = require('./lib/xyz-mesh-to-lonlat.js')
-    var icosphere = require('icosphere')
-    clip = require('./lib/clip.js')
-    cg = xyzMeshToLonLat(icosphere(Number(m[1] || 0)))
-  }
   input
     .pipe(JSONStream.parse('features.*'))
     .pipe(through.obj(function (feature,enc,next) {
-      if (cg) {
-        feature = clip(cg, feature)
-      }
       var bufs = encode(feature, encodeOpts)
       for (var i = 0; i < bufs.length; i++) {
         this.push(bufs[i])
@@ -104,7 +94,7 @@ if (cmd === 'encode') {
       ',\n',
       '\n]}\n'
     ))
-    .pipe(process.stdout)
+    .pipe(outstream)
 }
 
 function usage() {
