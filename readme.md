@@ -4,6 +4,24 @@ convert between the [georender][] format and geojson
 
 [georender]: https://github.com/peermaps/docs/blob/master/georender.md
 
+# usage
+
+```
+usage: georender-to-geojson [FILE] {OPTIONS}
+usage: geojson-to-georender [FILE] {OPTIONS}
+usage: georender-geojson encode [FILE] {OPTIONS}
+usage: georender-geojson decode [FILE] {OPTIONS}
+
+Convert between georender and geojson formats:
+geojson to georender (encode) or georender to geojson (decode)
+
+  -t --tag      For encoding, set a key=value as a tag.
+  -f --format   Input or output format: hex, base64, or lp (default).
+  -o --outfile  Write output to file or "-" for stdout (default).
+  -h --help     Show this message.
+
+```
+
 # example
 
 geojson to georender:
@@ -19,12 +37,8 @@ var encoded = toGeorender({
       geometry: {
         type: 'MultiPolygon',
         coordinates: [
-          [
-            [[10,20],[30,40],[50,0],[10,20]]
-          ],
-          [
-            [[0,50],[40,55],[20,35],[0,50]]
-          ],
+          [[[10,20],[30,40],[50,0],[10,20]]],
+          [[[0,50],[40,55],[20,35],[0,50]]],
         ],
       },
     }

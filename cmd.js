@@ -110,6 +110,7 @@ function usage() {
       -t --tag      For encoding, set a key=value as a tag.
       -f --format   Input or output format: hex, base64, or lp (default).
       -o --outfile  Write output to file or "-" for stdout (default).
+      -h --help     Show this message.
 
   `.trim().replace(/^ {4}/gm,'') + '\n')
 }
