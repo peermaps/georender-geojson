@@ -95,6 +95,8 @@ if (cmd === 'encode') {
       '\n]}\n'
     ))
     .pipe(outstream)
+} else {
+  usage()
 }
 
 function usage() {
