@@ -76,7 +76,7 @@ function encodeFeature(feature, opts, i) {
     var members = []
     var id = 1
     for (var j = 0; j < rings.length; j++) {
-      var cs = rings[j]
+      var cs = removeDuplicates(rings[j])
       if (cs.length === 0) continue
       var wayId = id++
       members.push({
@@ -111,7 +111,7 @@ function encodeFeature(feature, opts, i) {
     for (var k = 0; k < mrings.length; k++) {
       var rings = mrings[k]
       for (var n = 0; n < rings.length; n++) {
-        var cs = rings[n]
+        var cs = removeDuplicates(rings[n])
         if (cs.length === 0) continue
         var wayId = id++
         members.push({
@@ -147,6 +147,16 @@ function encodeFeature(feature, opts, i) {
 function approxEq(a,b) {
   var epsilon = 1e-7
   return Math.abs(a[0]-b[0]) < epsilon && Math.abs(a[1]-b[1]) < epsilon
+}
+
+function removeDuplicates(ring) {
+  var res = []
+  for (var i = 0; i < ring.length; i++) {
+    var p0 = ring[i]
+    var p1 = ring[(i+ring.length-1)%ring.length]
+    if (i === 0 || !approxEq(p0,p1)) res.push(p0)
+  }
+  return res
 }
 
 function identity(x) { return x }
