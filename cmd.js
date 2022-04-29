@@ -4,6 +4,8 @@ var minimist = require('minimist')
 var argv = minimist(process.argv.slice(2), {
   alias: {
     t: ['tag','tags'],
+    e: 'eval',
+    r: 'require',
     f: 'format',
     o: 'outfile',
     h: 'help'
@@ -45,14 +47,32 @@ if (cmd === 'encode') {
   } else if (true || argv.f === 'lp') {
     outfmt = lp.encode()
   }
-  var encodeOpts = {}
+  var encodeOpts = {}, tags = null, f = null
   if (argv.tags) {
-    var tags = {}
+    tags = {}
     ;[].concat(argv.tags).forEach(function (tag) {
       var [k,v] = tag.split('=')
       tags[k] = v
     })
-    encodeOpts.propertyMap = function (props) {
+  }
+  if (argv.eval) {
+    f = Function(['properties','feature'], argv.eval)
+  } else if (argv.require) {
+    f = require(argv.require)
+  }
+  if (argv.tags && f) {
+    encodeOpts.propertyMap = function (props, feature) {
+      var nprops = Object.assign(props, tags)
+      var r = f(nprops, feature)
+      return r === undefined ? nprops : r
+    }
+  } else if (f) {
+    encodeOpts.propertyMap = function (props, feature) {
+      var r = f(props, feature)
+      return r === undefined ? props : r
+    }
+  } else if (argv.tags) {
+    encodeOpts.propertyMap = function (props, feature) {
       return Object.assign(props, tags)
     }
   }
@@ -110,9 +130,18 @@ function usage() {
     geojson to georender (encode) or georender to geojson (decode)
 
       -t --tag      For encoding, set a key=value as a tag.
+      -e --eval     For encoding, modify properties with a js expression.
+      -r --require  For encoding, modify properties with a js file.
       -f --format   Input or output format: hex, base64, or lp (default).
       -o --outfile  Write output to file or "-" for stdout (default).
       -h --help     Show this message.
+
+    Eval expressions have "feature" and "properties" variables in scope.
+    Expressions can return a new properties object or modify in-place.
+
+    A file required with --require should set a module.exports with a
+    \`function (properties, feature) {}\` and return a new properties
+    object or modify properties in-place.
 
   `.trim().replace(/^ {4}/gm,'') + '\n')
 }

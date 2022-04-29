@@ -16,9 +16,18 @@ Convert between georender and geojson formats:
 geojson to georender (encode) or georender to geojson (decode)
 
   -t --tag      For encoding, set a key=value as a tag.
+  -e --eval     For encoding, modify properties with a js expression.
+  -r --require  For encoding, modify properties with a js file.
   -f --format   Input or output format: hex, base64, or lp (default).
   -o --outfile  Write output to file or "-" for stdout (default).
   -h --help     Show this message.
+
+Eval expressions have "feature" and "properties" variables in scope.
+Expressions can return a new properties object or modify in-place.
+
+A file required with --require should set a module.exports with a
+`function (properties, feature) {}` and return a new properties
+object or modify properties in-place.
 
 ```
 
