@@ -6,6 +6,7 @@ var argv = minimist(process.argv.slice(2), {
     t: ['tag','tags'],
     e: 'eval',
     r: 'require',
+    ra: 'require-arg',
     f: 'format',
     o: 'outfile',
     h: 'help'
@@ -47,7 +48,7 @@ if (cmd === 'encode') {
   } else if (true || argv.f === 'lp') {
     outfmt = lp.encode()
   }
-  var encodeOpts = {}, tags = null, f = null
+  var encodeOpts = {}, tags = null, f = null, rargs = null
   if (argv.tags) {
     tags = {}
     ;[].concat(argv.tags).forEach(function (tag) {
@@ -58,17 +59,22 @@ if (cmd === 'encode') {
   if (argv.eval) {
     f = Function(['properties','feature'], argv.eval)
   } else if (argv.require) {
-    f = require(argv.require)
+    f = require(path.resolve(argv.require))
+    rargs = [].concat(argv['require-arg'])
   }
   if (argv.tags && f) {
     encodeOpts.propertyMap = function (props, feature) {
       var nprops = Object.assign(props, tags)
-      var r = f(nprops, feature)
+      var r = rargs === null
+        ? f(nprops, feature)
+        : f.apply(null, [nprops,feature].concat(rargs))
       return r === undefined ? nprops : r
     }
   } else if (f) {
     encodeOpts.propertyMap = function (props, feature) {
-      var r = f(props, feature)
+      var r = rargs === null
+        ? f(props, feature)
+        : f.apply(null, [props,feature].concat(rargs))
       return r === undefined ? props : r
     }
   } else if (argv.tags) {
@@ -129,19 +135,21 @@ function usage() {
     Convert between georender and geojson formats:
     geojson to georender (encode) or georender to geojson (decode)
 
-      -t --tag      For encoding, set a key=value as a tag.
-      -e --eval     For encoding, modify properties with a js expression.
-      -r --require  For encoding, modify properties with a js file.
-      -f --format   Input or output format: hex, base64, or lp (default).
-      -o --outfile  Write output to file or "-" for stdout (default).
-      -h --help     Show this message.
+      -t --tag        For encoding, set a key=value as a tag.
+      -e --eval       For encoding, modify properties with a js expression.
+      -r --require    For encoding, modify properties with a js file.
+      --ra            Set additional require function arguments.
+      -f --format     Input or output format: hex, base64, or lp (default).
+      -o --outfile    Write output to file or "-" for stdout (default).
+      -h --help       Show this message.
 
     Eval expressions have "feature" and "properties" variables in scope.
     Expressions can return a new properties object or modify in-place.
 
     A file required with --require should set a module.exports with a
-    \`function (properties, feature) {}\` and return a new properties
-    object or modify properties in-place.
+    \`function (properties, feature, ...args) {}\` and return a new properties
+    object or modify properties in-place. Extra arguments from \`--require-arg\`
+    are passed into \`args\`.
 
   `.trim().replace(/^ {4}/gm,'') + '\n')
 }
